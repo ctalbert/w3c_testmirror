@@ -1,0 +1,8 @@
+1. Need to be sure that it works with file trees.
+2. Probably need to refactor so that the hardcoded files are in a config file so that it will be easy to modify the behavior of the hook by checking into mozilla-central
+3. Not sure what REFTESTPATH is for. Is that thought to be the top level manifest for the submitted files?
+4. Does not read the manifests at all
+5. Needs ability to build manifests given the meta-data from the w3c tests, and the ability to ensure that any annotations in the mozilla manifests are applied to the new tests when they come back from the w3c (for existing tests in both places (before the duplicate files are removed).
+6. Logging is never initialized, and needs to be an option both for logfile and log-level
+7. Needs a setup.py to handle the hgapi dependency (MUST be installed in same virtualenv that hg is installed into).
+

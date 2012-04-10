@@ -4,12 +4,11 @@
 import pdb # for development use
 import os, re, hgapi, logging, shutil
 
-
 def commitFile(ui, repo, **kwargs):
     '''
         commitFile runs when a file is committed. It checks
-        to see if there are any test files that were committed in 
-        a testing directory and if there are, it commits them to the 
+        to see if there are any test files that were committed in
+        a testing directory and if there are, it commits them to the
         W3C-submitted test repository.
 
         See: http://danchr.bitbucket.org/mercurial-api/
@@ -18,11 +17,11 @@ def commitFile(ui, repo, **kwargs):
         ***kwargs - other arguments in object style k:v
     '''
     THEFILES = repo[kwargs['node']].files()
-    TESTDIR = 'otherdir/'
+    TESTDIR = 'mirrordir/'
     LOGEMAIL = 'auto-tools@mozilla.com'
     SENDLOG = True
-    W3PATH = '/Users/sgarrett/Documents/Mozilla_Tests/otherrepo/'
-    REFTESTPATH = '/Users/sgarrett/Documents/Mozilla_Tests/dummyrepo/reftest.list' 
+    W3PATH = '/home/ctalbert/projects/testrepo/w3crepo/'
+    REFTESTPATH = '/home/ctalbert/projects/testrepo/moz/reftest.list'
 
     test_files = filter(lambda x: re.search(TESTDIR, x) != None, THEFILES)
     if len(test_files) == 0:
@@ -54,7 +53,7 @@ def commitFile(ui, repo, **kwargs):
         # Committing the changes
         w3Location.hg_commit("Adding Mozilla Tests", user="me")
         logging.warn("Updated and committed test files to W3C\n")
-        return 
+        return
 
 
 def getFileFromFilePath (s):
@@ -64,7 +63,7 @@ def sendFailMail(toAddress, fileList, error):
     import smtplib
     from email.mime.text import MIMEText
 
-    me = "wThreeCRunner.py"
+    me = "w3cRunner.py"
     you = toAddress
 
     msg = MIMEText("There was an error when committing {}. Error: {}".format(
@@ -84,7 +83,7 @@ def sendFailMail(toAddress, fileList, error):
 
 def haveNewTests(w3cdir, mozdir):
     '''
-        This funciton checks if there are any
+        This function checks if there are any
         new tests that were submitted by W3C
         that returns a bool value.
 
@@ -128,7 +127,7 @@ def getDirectoryListing(directory):
         if f[0] == '.':
             files.remove(f)
     return files
-    
+
 def main():
     '''
         This main function gets executed daily
@@ -141,10 +140,10 @@ def main():
     #parser.add_option('--send-log', action='store', dest='send_log',
                       #default=False, help='Boolean, for whether to send a log on fail')
     parser.add_option('--w3dir', action='store', type="string", dest='localW3CDir',
-                      default='/Users/sgarrett/Documents/Mozilla_Tests/w3cdir/',
+                      default='/home/ctalbert/projects/testrepo/w3crepo/',
                       help='Our local copy of the w3c approved repo.')
     parser.add_option('--mozdir', action='store', type="string", dest='mozSubmittedDir',
-                      default='/Users/sgarrett/Documents/Mozilla_Tests/mozdir/',
+                      default='/home/ctalbert/projects/testrepo/moz/',
                       help='Mozilla\'s tests that are submitted to w3c.')
 
     (options, args) = parser.parse_args()
@@ -156,7 +155,7 @@ def main():
     logging.info(options.mozSubmittedDir + " updated\n")
     updateRepo(options.localW3CDir)
     logging.info(options.localW3CDir + " updated\n")
-    
+
     # TODO: BUILD manfiest
 
     logging.info("Checking for new tests...\n")
