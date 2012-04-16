@@ -1,0 +1,7 @@
+{
+   "default_w3cdir": "/Users/sgarrett/Documents/Mozilla_Tests/w3cdir/",
+   "default_mozdir": "/Users/sgarrett/Documents/Mozilla_Tests/mozdir/",
+   "test_dir": "otherdir/",
+   "log_email": "auto-tools@mozilla.com",
+   "log_level": "debug"
+}

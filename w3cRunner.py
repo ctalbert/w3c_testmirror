@@ -2,7 +2,7 @@
 # for https://wiki.mozilla.org/Auto-tools/Projects/W3C_CSS_Test_Mirroring
 
 import pdb # for development use
-import os, re, hgapi, logging, shutil
+import os, re, hgapi, logging, shutil, json
 
 def commitFile(ui, repo, **kwargs):
     '''
@@ -16,12 +16,14 @@ def commitFile(ui, repo, **kwargs):
         repo - a mercurial repository object
         ***kwargs - other arguments in object style k:v
     '''
+    config = json.load(open('/Users/sgarrett/github/w3c_testmirror/config.json'))
+
     THEFILES = repo[kwargs['node']].files()
-    TESTDIR = 'mirrordir/'
-    LOGEMAIL = 'auto-tools@mozilla.com'
+    TESTDIR = config["test_dir"] 
+    LOGEMAIL = config["log_email"] 
     SENDLOG = True
-    W3PATH = '/home/ctalbert/projects/testrepo/w3crepo/'
-    REFTESTPATH = '/home/ctalbert/projects/testrepo/moz/reftest.list'
+    W3PATH = config["default_w3cdir"]
+    #REFTESTPATH = config["default_mozdir"] + "reftest.list"
 
     test_files = filter(lambda x: re.search(TESTDIR, x) != None, THEFILES)
     if len(test_files) == 0:
@@ -33,8 +35,8 @@ def commitFile(ui, repo, **kwargs):
         w3Location = hgapi.Repo(W3PATH) #W3C repo
 
         # add reftest.list
-        shutil.copyfile(REFTESTPATH, W3PATH + "reftest.list")
-        w3Location.hg_add(getFileFromFilePath(REFTESTPATH))
+        #shutil.copyfile(REFTESTPATH, W3PATH + "reftest.list")
+        #w3Location.hg_add(getFileFromFilePath(REFTESTPATH))
 
         # TODO: Not sure how to test if a file upload/hg_add fails
         # but when it does:
@@ -99,6 +101,7 @@ def haveNewTests(w3cdir, mozdir):
             # remove the test from css-submitted to avoid duplicate tests
             os.remove(mozdir + f)
             logging.warn(f + " removed from " + mozdir + "\n")
+            # TODO: write code which copies manifest lines to new manifest
             # take test line from moz manifest for this file and copy it to the new manifest
             logging.info("Manifest updated for: " + f + "\n")
         else:
@@ -135,21 +138,38 @@ def main():
         test is submitted/approved by W3C.
     '''
     from optparse import OptionParser
+    config = json.load(open('/Users/sgarrett/github/w3c_testmirror/config.json'))
 
     parser = OptionParser()
     #parser.add_option('--send-log', action='store', dest='send_log',
                       #default=False, help='Boolean, for whether to send a log on fail')
-    parser.add_option('--w3dir', action='store', type="string", dest='localW3CDir',
-                      default='/home/ctalbert/projects/testrepo/w3crepo/',
+    parser.add_option('--w3cdir', action='store', type="string", dest='localW3CDir',
+                      default=config["default_w3cdir"],
                       help='Our local copy of the w3c approved repo.')
     parser.add_option('--mozdir', action='store', type="string", dest='mozSubmittedDir',
-                      default='/home/ctalbert/projects/testrepo/moz/',
+                      default=config["default_mozdir"],
                       help='Mozilla\'s tests that are submitted to w3c.')
+    #parser.add_option('--log-level', action='store', type="string", dest='logLevel',
+                      #default=config["log_level"],
+                      #help='The threshold for which log message will be displayed.')
+
 
     (options, args) = parser.parse_args()
 
     #w3cSubmittedDir = 'https://hg.csswg.org/test/contributors/mozilla/submitted'
     #w3cApprovedDir = 'https://hg.csswg.org/test/approved/'
+
+    # TODO: Finish logging, trying to avoid global logger definition
+    # was thinking about creating w3cRunner into a class and then having a cli
+
+    #logger = logging.getLogger('w3c_testmirror')
+    #filehandler = loggine.FileHandler('w3c_testmirror.log')
+    #filehandler.setLevel(logging.DEBUG)
+    #logger.addHandler(filehandler)
+
+    #consolehandler = logging.StreamHandler()
+    #consolehandler.setLevel(logging.ERROR)
+    #logger.addHandler(consolehandler)
 
     updateRepo(options.mozSubmittedDir)
     logging.info(options.mozSubmittedDir + " updated\n")
